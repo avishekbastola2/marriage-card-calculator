@@ -1,168 +1,289 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Marriage Card Tracker - Fixed Totals</title>
-    <style>
-        :root { --bg: #0f172a; --panel: #1e293b; --accent: #6366f1; --win: #22c55e; --loss: #ef4444; --text: #f1f5f9; }
-        body { background-color: var(--bg); color: var(--text); font-family: sans-serif; padding: 10px; margin: 0; }
-        .setup-card { background: var(--panel); padding: 20px; border-radius: 12px; border: 1px solid #334155; margin-bottom: 20px; text-align: center; }
-        .table-wrap { overflow-x: auto; background: #111827; border: 1px solid #334155; border-radius: 8px; }
-        table { width: 100%; border-collapse: collapse; min-width: 1200px; }
-        th, td { border: 1px solid #334155; padding: 12px 8px; text-align: center; }
-        th { background: #334155; color: #9ca3af; font-size: 11px; text-transform: uppercase; }
-        .win-col { width: 140px !important; min-width: 140px; }
-        .maal-input { width: 60px; background: #fff !important; color: #000 !important; font-weight: bold; border: 2px solid var(--accent); border-radius: 4px; padding: 5px; }
-        .seen-sel { width: 75px; background: #1e293b; color: white; border: 1px solid #475569; padding: 5px; border-radius: 4px; cursor: pointer; }
-        .winner-sel { width: 120px; font-weight: bold; color: #facc15; background: #1e293b; border: 1px solid #475569; padding: 5px; border-radius: 4px; }
-        .pos { color: var(--win); font-weight: bold; }
-        .neg { color: var(--loss); font-weight: bold; }
-        .footer-row { background: #000; font-size: 1.2rem; border-top: 4px solid var(--accent); }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Marriage Card Tracker - Fixed Totals</title>
+<style>
+:root { 
+    --bg: #0f172a; 
+    --panel: #1e293b; 
+    --accent: #6366f1; 
+    --win: #22c55e; 
+    --loss: #ef4444; 
+    --text: #f1f5f9; 
+}
+body { 
+    background-color: var(--bg); 
+    color: var(--text); 
+    font-family: sans-serif; 
+    padding: 10px; 
+    margin: 0; 
+}
+h2 { margin: 0 0 15px 0; }
+.setup-card { 
+    background: var(--panel); 
+    padding: 20px; 
+    border-radius: 12px; 
+    border: 1px solid #334155; 
+    margin-bottom: 20px; 
+    text-align: center; 
+}
+.table-wrap { 
+    overflow-x: auto; 
+    background: #111827; 
+    border: 1px solid #334155; 
+    border-radius: 8px; 
+}
+table { 
+    width: 100%; 
+    border-collapse: collapse; 
+    min-width: 1200px; 
+}
+th, td { 
+    border: 1px solid #334155; 
+    padding: 12px 8px; 
+    text-align: center; 
+}
+th { 
+    background: #334155; 
+    color: #9ca3af; 
+    font-size: 11px; 
+    text-transform: uppercase; 
+}
+.win-col { 
+    width: 140px !important; 
+    min-width: 140px; 
+}
+.maal-input { 
+    width: 60px; 
+    background: #fff !important; 
+    color: #000 !important; 
+    font-weight: bold; 
+    border: 2px solid var(--accent); 
+    border-radius: 4px; 
+    padding: 5px; 
+}
+.seen-sel { 
+    width: 75px; 
+    background: #1e293b; 
+    color: white; 
+    border: 1px solid #475569; 
+    padding: 5px; 
+    border-radius: 4px; 
+    cursor: pointer; 
+}
+.winner-sel { 
+    width: 120px; 
+    font-weight: bold; 
+    color: #facc15; 
+    background: #1e293b; 
+    border: 1px solid #475569; 
+    padding: 5px; 
+    border-radius: 4px; 
+}
+.pos { color: var(--win); font-weight: bold; }
+.neg { color: var(--loss); font-weight: bold; }
+.footer-row { 
+    background: #000; 
+    font-size: 1.2rem; 
+    border-top: 4px solid var(--accent); 
+}
+/* Mobile Styles */
+@media (max-width: 768px) {
+    body { padding: 6px; font-size: 14px; }
+    h2 { font-size: 1.1rem; line-height: 1.4; }
+    .maal-input { width: 55px; font-size: 16px; }
+    .seen-sel, .winner-sel { font-size: 15px; padding: 6px; }
+    th, td { padding: 8px 5px; font-size: 12px; }
+    .win-col { min-width: 110px; }
+}
+</style>
 </head>
 <body>
-    <div class="setup-card" id="setup">
-        <h2>MARRIAGE CARD GAME CASH COUNTER <BR>
-by AVISHEK</h2>
-        <div style="margin-bottom:15px;">
-            <label>Rate per Point: </label>
-            <input type="number" id="rate" value="10" style="width:70px;">
-        </div>
-        <div id="player-inputs">
-            <input type="text" class="p-name" placeholder="Player 1 Name">
-            <input type="text" class="p-name" placeholder="Player 2 Name">
-            <input type="text" class="p-name" placeholder="Player 3 Name">
-            <input type="text" class="p-name" placeholder="Player 4 Name">
-            <input type="text" class="p-name" placeholder="Player 5 Name">
-        </div>
-        <br><button onclick="start()" style="padding:10px 30px; cursor:pointer; background:var(--accent); color:white; border:none; border-radius:5px; font-weight:bold;">Start Game</button>
-    </div>
 
-    <div id="game-area" style="display:none;" class="table-wrap">
-        <table id="scoreTable"></table>
-        <div style="padding: 20px; text-align: center;">
-            <button onclick="location.reload()" style="background:#475569; color:white; border:none; padding:10px 20px; border-radius:5px; cursor:pointer;">New Game</button>
-        </div>
+<div class="setup-card" id="setup">
+    <h2>MARRIAGE CARD GAME CASH COUNTER <br>by AVISHEK</h2>
+    <div style="margin-bottom:15px;">
+        <label>Rate per Point: </label>
+        <input type="number" id="rate" value="10" inputmode="numeric" pattern="[0-9]*" style="width:70px;">
     </div>
+    <div id="player-inputs">
+        <input type="text" class="p-name" placeholder="Player 1 Name">
+        <input type="text" class="p-name" placeholder="Player 2 Name">
+        <input type="text" class="p-name" placeholder="Player 3 Name">
+        <input type="text" class="p-name" placeholder="Player 4 Name">
+        <input type="text" class="p-name" placeholder="Player 5 Name">
+    </div>
+    <br>
+    <button onclick="start()" style="padding:10px 30px; cursor:pointer; background:var(--accent); color:white; border:none; border-radius:5px; font-weight:bold;">
+        Start Game
+    </button>
+</div>
+
+<div id="game-area" style="display:none;">
+    <div style="text-align:center; font-size:12px; color:#9ca3af; padding-bottom:6px;">
+        ← Swipe horizontally to view full table →
+    </div>
+    <div class="table-wrap">
+        <table id="scoreTable"></table>
+    </div>
+    <div style="padding: 20px; text-align: center;">
+        <button onclick="addRound()" style="background:#22c55e; color:white; border:none; padding:10px 20px; border-radius:5px; cursor:pointer; margin-right:10px;">
+            Add Round
+        </button>
+        <button onclick="location.reload()" style="background:#475569; color:white; border:none; padding:10px 20px; border-radius:5px; cursor:pointer;">
+            New Game
+        </button>
+    </div>
+</div>
 
 <script>
-    let players = [];
-    let rate = 10;
+const UNSEEN_PENALTY = 10;
+const SEEN_PENALTY = 3;
 
-    function start() {
-        rate = Number(document.getElementById('rate').value) || 10;
-        document.querySelectorAll('.p-name').forEach(i => { if(i.value.trim()) players.push(i.value.trim()); });
-        if(players.length < 2) return alert("Please enter at least 2 player names!");
-        
-        document.getElementById('setup').style.display = 'none';
-        document.getElementById('game-area').style.display = 'block';
-        
-        let table = document.getElementById('scoreTable');
-        let h1 = `<tr><th style="width:50px">RD</th><th class="win-col">WINNER</th>`;
-        players.forEach(p => h1 += `<th colspan="3" style="border-left:3px solid #6366f1;">${p}</th>`);
-        h1 += `<th>TOTAL MAAL</th></tr>`;
-        
-        let h2 = `<tr><td></td><td></td>`;
-        players.forEach(() => h2 += `<td>Maal</td><td>Seen</td><td>Cash</td>`);
-        h2 += `<td></td></tr>`;
-        
-        table.innerHTML = h1 + h2;
+let players = [];
+let rate = 10;
+let roundCount = 10;
 
-        for(let r=1; r<=10; r++) {
-            let row = table.insertRow();
-            row.insertCell().innerText = r;
-            let winCell = row.insertCell();
-            winCell.className = "win-col";
-            let sel = `<select class="winner-sel" onchange="calc(${r})">`;
-            sel += `<option value="-1">SELECT</option>`;
-            players.forEach((p, i) => sel += `<option value="${i}">${p}</option>`);
-            winCell.innerHTML = sel + `</select>`;
+function start() {
+    players = [];
+    rate = Number(document.getElementById('rate').value) || 10;
+    document.querySelectorAll('.p-name').forEach(i => { if(i.value.trim()) players.push(i.value.trim()); });
+    if(players.length < 2) return alert("Please enter at least 2 player names!");
+    
+    document.getElementById('setup').style.display = 'none';
+    document.getElementById('game-area').style.display = 'block';
+    
+    initTable(roundCount);
+}
 
-            players.forEach((_, i) => {
-                row.insertCell().innerHTML = `<input type="number" class="maal-input" oninput="calc(${r})">`;
-                row.insertCell().innerHTML = `<select class="seen-sel" onchange="calc(${r})"><option value="yes">YES</option><option value="no">NO</option></select>`;
-                let c = row.insertCell(); c.innerText = "0"; c.className = "cash-cell";
-            });
-            let tm = row.insertCell(); tm.innerText = "0"; tm.className = "tm-cell";
-        }
+function initTable(count) {
+    let table = document.getElementById('scoreTable');
+    table.innerHTML = '';
 
-        let foot = table.insertRow(); 
-        foot.className = "footer-row";
-        foot.innerHTML = `<td colspan="2">SESSION TOTAL CASH</td>` + 
-                         players.map(() => `<td colspan="3" class="g-total">0</td>`).join('') + 
-                         `<td>-</td>`;
-    }
+    // Header 1
+    let h1 = `<tr><th style="width:50px">RD</th><th class="win-col">WINNER</th>`;
+    players.forEach(p => h1 += `<th colspan="3" style="border-left:3px solid #6366f1;">${p}</th>`);
+    h1 += `<th>TOTAL MAAL</th></tr>`;
 
-    function calc(r) {
-        let table = document.getElementById('scoreTable');
-        let row = table.rows[r+1];
-        let winIdx = parseInt(row.cells[1].querySelector('select').value);
-        
-        if (winIdx === -1) {
-            // Reset row if no winner selected
-            players.forEach((_, i) => { row.cells[4 + i*3].innerText = "0"; row.cells[4 + i*3].className = "cash-cell"; });
-            row.cells[row.cells.length-1].innerText = "0";
-            updateGrandTotals();
-            return;
-        }
+    // Header 2
+    let h2 = `<tr><td></td><td></td>`;
+    players.forEach(() => h2 += `<td>Maal</td><td>Seen</td><td>Cash</td>`);
+    h2 += `<td></td></tr>`;
 
-        let totalMaal = 0;
-        let stats = players.map((_, i) => {
-            let m = parseInt(row.cells[2 + i*3].querySelector('input').value) || 0;
-            let s = row.cells[3 + i*3].querySelector('select').value;
-            if(s === "yes") totalMaal += m;
-            return { m, s };
-        });
+    table.innerHTML = h1 + h2;
 
-        let othersTotalCash = 0;
+    for(let r=1; r<=count; r++) addRoundRow(r);
+
+    // Footer
+    let foot = table.insertRow(); 
+    foot.className = "footer-row";
+    foot.innerHTML = `<td colspan="2">SESSION TOTAL CASH</td>` + 
+                     players.map(() => `<td colspan="3" class="g-total">0</td>`).join('') + 
+                     `<td>-</td>`;
+}
+
+function addRoundRow(r) {
+    let table = document.getElementById('scoreTable');
+    let row = table.insertRow(table.rows.length - 1); // Insert above footer
+    row.insertCell().innerText = r;
+
+    let winCell = row.insertCell();
+    winCell.className = "win-col";
+    let sel = `<select class="winner-sel" onchange="calc(${r})">`;
+    sel += `<option value="-1">SELECT</option>`;
+    players.forEach((p, i) => sel += `<option value="${i}">${p}</option>`);
+    winCell.innerHTML = sel + `</select>`;
+
+    players.forEach((_, i) => {
+        row.insertCell().innerHTML = `<input type="number" min="0" value="0" class="maal-input" inputmode="numeric" pattern="[0-9]*" oninput="this.value=Math.max(0,this.value); calc(${r})">`;
+        row.insertCell().innerHTML = `<select class="seen-sel" onchange="calc(${r})"><option value="yes">YES</option><option value="no">NO</option></select>`;
+        let c = row.insertCell(); c.innerText = "0"; c.className = "cash-cell";
+    });
+    let tm = row.insertCell(); tm.innerText = "0"; tm.className = "tm-cell";
+}
+
+function addRound() {
+    roundCount++;
+    addRoundRow(roundCount);
+}
+
+function calc(r) {
+    let table = document.getElementById('scoreTable');
+    let row = table.rows[r+1]; // 2 headers above
+
+    let winIdx = parseInt(row.cells[1].querySelector('select').value);
+
+    // Lock row if winner selected
+    if(winIdx !== -1) {
+        // Disable winner select
+        row.cells[1].querySelector('select').disabled = true;
+        // Disable all maal and seen inputs
         players.forEach((_, i) => {
-            if(i === winIdx) return;
-            
-            let cash = 0;
-            if(stats[i].s === "no") {
-                cash = -((totalMaal + 10) * rate);
-            } else {
-                cash = ((stats[i].m * players.length) - (totalMaal + 3)) * rate;
-            }
-            
-            let cCell = row.cells[4 + i*3];
-            cCell.innerText = Math.round(cash);
-            cCell.className = "cash-cell " + (cash >= 0 ? "pos" : "neg");
-            othersTotalCash += cash;
+            row.cells[2 + i*3].querySelector('input').disabled = true;
+            row.cells[3 + i*3].querySelector('select').disabled = true;
         });
+    }
 
-        // Winner gets balance
-        let wCell = row.cells[4 + winIdx*3];
-        let winCash = -othersTotalCash;
-        wCell.innerText = Math.round(winCash);
-        wCell.className = "cash-cell " + (winCash >= 0 ? "pos" : "neg");
-        
-        row.cells[row.cells.length-1].innerText = totalMaal;
+    if (winIdx === -1) {
+        players.forEach((_, i) => { 
+            row.cells[4 + i*3].innerText = "0"; 
+            row.cells[4 + i*3].className = "cash-cell"; 
+        });
+        row.cells[row.cells.length-1].innerText = "0";
         updateGrandTotals();
+        return;
     }
 
-    function updateGrandTotals() {
-        const table = document.getElementById('scoreTable');
-        const rows = table.rows;
-        const footer = rows[rows.length - 1];
-        
-        players.forEach((_, pIdx) => {
-            let sum = 0;
-            // Rows start at index 2 (after headers), end before footer
-            for(let rIdx = 2; rIdx < rows.length - 1; rIdx++) {
-                // The Cash cell for player 'pIdx' is at: 2 (headers/RD/Win) + (pIdx * 3) + 2 (offset for Maal/Seen)
-                // Which simplifies to: 4 + pIdx * 3
-                let val = Number(rows[rIdx].cells[4 + pIdx * 3].innerText) || 0;
-                sum += val;
-            }
-            
-            // Footer cells: index 0 (Total label), then each player has a colspan=3 cell starting at index 1
-            let targetCell = footer.cells[1 + pIdx];
-            targetCell.innerText = sum;
-            targetCell.className = "g-total " + (sum >= 0 ? "pos" : "neg");
-        });
-    }
+    let totalMaal = 0;
+    let stats = players.map((_, i) => {
+        let m = parseInt(row.cells[2 + i*3].querySelector('input').value) || 0;
+        let s = row.cells[3 + i*3].querySelector('select').value;
+        if(s === "yes") totalMaal += m;
+        return { m, s };
+    });
+
+    let othersTotalCash = 0;
+    players.forEach((_, i) => {
+        if(i === winIdx) return;
+        let cash = 0;
+        if(stats[i].s === "no") {
+            cash = -((totalMaal + UNSEEN_PENALTY) * rate);
+        } else {
+            cash = ((stats[i].m * players.length) - (totalMaal + SEEN_PENALTY)) * rate;
+        }
+        let cCell = row.cells[4 + i*3];
+        cCell.innerText = Math.round(cash);
+        cCell.className = "cash-cell " + (cash >= 0 ? "pos" : "neg");
+        othersTotalCash += cash;
+    });
+
+    let wCell = row.cells[4 + winIdx*3];
+    let winCash = -othersTotalCash;
+    wCell.innerText = Math.round(winCash);
+    wCell.className = "cash-cell " + (winCash >= 0 ? "pos" : "neg");
+
+    row.cells[row.cells.length-1].innerText = totalMaal;
+    updateGrandTotals();
+}
+
+function updateGrandTotals() {
+    const table = document.getElementById('scoreTable');
+    const rows = table.rows;
+    const footer = rows[rows.length - 1];
+    
+    players.forEach((_, pIdx) => {
+        let sum = 0;
+        for(let rIdx = 2; rIdx < rows.length - 1; rIdx++) {
+            let val = Number(rows[rIdx].cells[4 + pIdx * 3].innerText) || 0;
+            sum += val;
+        }
+        let targetCell = footer.cells[1 + pIdx];
+        targetCell.innerText = sum;
+        targetCell.className = "g-total " + (sum >= 0 ? "pos" : "neg");
+    });
+}
 </script>
 </body>
 </html>
