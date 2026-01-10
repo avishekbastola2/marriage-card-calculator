@@ -163,6 +163,32 @@
         });
     }
 </script>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+  import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyA_h1kas6HV-Lhk06sya2hsAMZmuQNAm9U",
+    authDomain: "marriage-card-tracker-b9b13.firebaseapp.com",
+    databaseURL: "https://marriage-card-tracker-b9b13-default-rtdb.firebaseio.com",
+    projectId: "marriage-card-tracker-b9b13",
+    storageBucket: "marriage-card-tracker-b9b13.firebasestorage.app",
+    messagingSenderId: "798170869634",
+    appId: "1:798170869634:web:3242fd686443a4f2c2699b",
+    measurementId: "G-JJDWXJN754"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  // Universal save function
+  window.saveGame = function(gameData) {
+    push(ref(db, "games/"), gameData)
+      .then(() => console.log("Game saved!"))
+      .catch(err => console.error("Save error:", err));
+  };
+</script>
 </body>
 </html>
+
 
