@@ -1,194 +1,397 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nepal Marriage Tracker</title>
-    <style>
-        :root { --bg: #0f172a; --panel: #1e293b; --accent: #6366f1; --win: #22c55e; --loss: #ef4444; --text: #f1f5f9; }
-        body { background-color: var(--bg); color: var(--text); font-family: sans-serif; padding: 10px; margin: 0; }
-        
-        /* High-Fidelity Nepal Flag */
-        .flag-container {
-            width: 100px;
-            margin: 0 auto 20px auto;
-            display: block;
-            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5));
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>Nepal Marriage Tracker</title>
 
-        .setup-card { background: var(--panel); padding: 30px; border-radius: 12px; border: 1px solid #334155; text-align: center; max-width: 600px; margin: 40px auto; }
-        .table-wrap { overflow-x: auto; background: #111827; border: 1px solid #334155; border-radius: 8px; }
-        table { width: 100%; border-collapse: collapse; min-width: 1200px; }
-        th, td { border: 1px solid #334155; padding: 12px 8px; text-align: center; }
-        th { background: #334155; color: #9ca3af; font-size: 11px; text-transform: uppercase; }
-        
-        .win-col { width: 140px !important; min-width: 140px; }
-        .p-name { margin: 5px; width: 160px; background:#1e293b; color:white; border:1px solid #475569; padding:8px; border-radius:4px;}
-        .maal-input { width: 60px; background: #fff !important; color: #000 !important; font-weight: bold; border: 2px solid var(--accent); border-radius: 4px; padding: 5px; }
-        .seen-sel { width: 75px; background: #1e293b; color: white; border: 1px solid #475569; padding: 5px; border-radius: 4px; cursor: pointer; }
-        .winner-sel { width: 120px; font-weight: bold; color: #facc15; background: #1e293b; border: 1px solid #475569; padding: 5px; border-radius: 4px; }
-        
-        .pos { color: var(--win); font-weight: bold; }
-        .neg { color: var(--loss); font-weight: bold; }
-        .footer-row { background: #000; font-size: 1.2rem; border-top: 4px solid var(--accent); }
-        button { padding: 12px 30px; cursor: pointer; background: var(--accent); color: white; border: none; border-radius: 5px; font-weight: bold; }
-    </style>
+<style>
+:root {
+  --bg: #0f172a;
+  --panel: #1e293b;
+  --accent: #6366f1;
+  --win: #22c55e;
+  --loss: #ef4444;
+  --text: #f1f5f9;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 15px;
+}
+
+.card {
+  background: var(--panel);
+  padding: 20px;
+  margin: auto;
+  max-width: 600px;
+  border-radius: 12px;
+  border: 1px solid #334155;
+  text-align: center;
+}
+
+input, select {
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #475569;
+  font-size: 16px;
+  width: 90%;
+  background: #1e293b;
+  color: white;
+}
+
+.btn {
+  padding: 12px 20px;
+  font-size: 16px;
+  font-weight: bold;
+  border-radius: 6px;
+  margin: 6px;
+  cursor: pointer;
+  border: none;
+}
+
+.btn-primary { background: var(--accent); color: white; }
+.btn-danger { background: var(--loss); color: white; }
+.btn-add { background: var(--win); color: white; }
+
+.table-wrap {
+  overflow-x: auto;
+  margin-top: 20px;
+  border-radius: 10px;
+  border: 1px solid #334155;
+  background: #111827;
+}
+
+table {
+  width: 100%;
+  min-width: 950px;
+  border-collapse: collapse;
+}
+
+th, td {
+  border: 1px solid #334155;
+  padding: 8px;
+  text-align: center;
+}
+
+.pos { color: var(--win); font-weight: bold; }
+.neg { color: var(--loss); font-weight: bold; }
+
+.nepal-flag {
+  width: 120px;
+  margin-bottom: 15px;
+  filter: drop-shadow(0 3px 8px rgba(0,0,0,0.4));
+}
+
+</style>
 </head>
 <body>
-    <div class="setup-card" id="setup">
-        <svg class="flag-container" viewBox="0 0 320 380" xmlns="http://www.w3.org/2000/svg">
-            <path fill="#003893" d="M0 0v380h240l-160-190h160L0 0z"/>
-            <path fill="#dc143c" d="M12 25v150h175l-130-155zM12 198v165h175l-130-155z"/>
-            <circle fill="#fff" cx="55" cy="115" r="25"/>
-            <circle fill="#dc143c" cx="55" cy="105" r="25"/>
-            <circle fill="#fff" cx="55" cy="285" r="22"/>
-        </svg>
-        
-        <h2 style="margin-top:0;">Marriage Card Tracker <BR> by AVISHEK BASTOLA</h2>
-        <div style="margin-bottom:20px;">
-            <label>Rate: </label>
-            <input type="number" id="rate" value="10" style="width:70px; background:#0f172a; color:white; border:1px solid #475569; padding:8px; border-radius:4px;">
-        </div>
-        <div id="player-inputs">
-            <input type="text" class="p-name" placeholder="Name 1">
-            <input type="text" class="p-name" placeholder="Name 2">
-            <input type="text" class="p-name" placeholder="Name 3">
-            <input type="text" class="p-name" placeholder="Name 4">
-            <input type="text" class="p-name" placeholder="Name 5">
-        </div>
-        <br>
-        <button onclick="start()">CREATE SCOREBOARD</button>
-    </div>
 
-    <div id="game-area" style="display:none;" class="table-wrap">
-        <table id="scoreTable"></table>
-        <div style="padding: 20px; text-align: center;">
-            <button onclick="location.reload()" style="background:#475569;">RESET GAME</button>
-        </div>
-    </div>
+<!-- GAME ID SCREEN -->
+<div id="user-setup" class="card">
+  <img class="nepal-flag" src="https://upload.wikimedia.org/wikipedia/commons/9/9b/Flag_of_Nepal.svg">
+  <h2>Enter Your Game ID</h2>
+  <input id="gameID" placeholder="Enter a unique game name">
+  <button class="btn btn-primary" onclick="initUser()">Start</button>
+</div>
 
-<script>
-    let players = [];
-    let rate = 10;
+<!-- CONTINUE OR NEW GAME -->
+<div id="continue-box" class="card" style="display:none;">
+  <h2>Previous Game Found</h2>
+  <button class="btn btn-primary" onclick="loadOldGame()">Continue Previous Game</button>
+  <button class="btn btn-danger" onclick="startFresh()">Start New Game</button>
+</div>
 
-    function start() {
-        rate = Number(document.getElementById('rate').value) || 10;
-        document.querySelectorAll('.p-name').forEach(i => { if(i.value.trim()) players.push(i.value.trim()); });
-        if(players.length < 2) return alert("Please enter names!");
-        
-        document.getElementById('setup').style.display = 'none';
-        document.getElementById('game-area').style.display = 'block';
-        
-        let table = document.getElementById('scoreTable');
-        let h1 = `<tr><th style="width:50px">RD</th><th class="win-col">WINNER</th>`;
-        players.forEach(p => h1 += `<th colspan="3" style="border-left:3px solid #6366f1;">${p}</th>`);
-        h1 += `<th>TOTAL MAAL</th></tr>`;
-        
-        let h2 = `<tr><td></td><td></td>`;
-        players.forEach(() => h2 += `<td>Maal</td><td>Seen</td><td>Cash</td>`);
-        h2 += `<td></td></tr>`;
-        
-        table.innerHTML = h1 + h2;
+<!-- PLAYER SETUP -->
+<div id="setup" class="card" style="display:none;">
+  <h2>Player Setup</h2>
 
-        for(let r=1; r<=10; r++) {
-            let row = table.insertRow();
-            row.insertCell().innerText = r;
-            let winCell = row.insertCell();
-            winCell.className = "win-col";
-            let sel = `<select class="winner-sel" onchange="calc(${r})">`;
-            sel += `<option value="-1">SELECT</option>`;
-            players.forEach((p, i) => sel += `<option value="${i}">${p}</option>`);
-            winCell.innerHTML = sel + `</select>`;
+  <label>Rate per point:</label>
+  <input type="number" id="rate" value="10">
 
-            players.forEach(() => {
-                row.insertCell().innerHTML = `<input type="number" class="maal-input" oninput="calc(${r})">`;
-                row.insertCell().innerHTML = `<select class="seen-sel" onchange="calc(${r})"><option value="yes">YES</option><option value="no">NO</option></select>`;
-                let c = row.insertCell(); c.innerText = "0"; c.className = "cash-cell";
-            });
-            let tm = row.insertCell(); tm.innerText = "0"; tm.className = "tm-cell";
-        }
+  <div id="player-container">
+    <input class="p-name" placeholder="Player 1">
+    <input class="p-name" placeholder="Player 2">
+  </div>
 
-        let foot = table.insertRow(); 
-        foot.className = "footer-row";
-        foot.innerHTML = `<td colspan="2">SESSION TOTAL CASH</td>` + 
-                         players.map(() => `<td colspan="3" class="g-total">0</td>`).join('') + 
-                         `<td>-</td>`;
-    }
+  <button class="btn btn-add" onclick="addPlayerField()">+ ADD PLAYER</button>
+  <button class="btn btn-primary" onclick="startGame()">START GAME</button>
+</div>
 
-    function calc(r) {
-        let table = document.getElementById('scoreTable');
-        let row = table.rows[r+1];
-        let winIdx = parseInt(row.cells[1].querySelector('select').value);
-        if (winIdx === -1) return;
+<!-- GAME AREA -->
+<div id="game-area" style="display:none;">
+  <div class="table-wrap">
+    <table id="scoreTable"></table>
+  </div>
 
-        let totalMaal = 0;
-        let stats = players.map((_, i) => {
-            let m = parseInt(row.cells[2 + i*3].querySelector('input').value) || 0;
-            let s = row.cells[3 + i*3].querySelector('select').value;
-            if(s === "yes") totalMaal += m;
-            return { m, s };
-        });
+  <div style="text-align:center; margin-top:10px;">
+    <button class="btn btn-add" onclick="addRow()">+ NEXT ROUND</button>
+    <button class="btn btn-danger" onclick="resetGame()">NEW GAME</button>
+  </div>
+</div>
 
-        let othersTotalCash = 0;
-        players.forEach((_, i) => {
-            if(i === winIdx) return;
-            let cash = (stats[i].s === "no") ? -((totalMaal + 10) * rate) : ((stats[i].m * players.length) - (totalMaal + 3)) * rate;
-            let cCell = row.cells[4 + i*3];
-            cCell.innerText = Math.round(cash);
-            cCell.className = "cash-cell " + (cash >= 0 ? "pos" : "neg");
-            othersTotalCash += cash;
-        });
-
-        let wCell = row.cells[4 + winIdx*3];
-        let winCash = -othersTotalCash;
-        wCell.innerText = Math.round(winCash);
-        wCell.className = "cash-cell " + (winCash >= 0 ? "pos" : "neg");
-        
-        row.cells[row.cells.length-1].innerText = totalMaal;
-        updateGrandTotals();
-    }
-
-    function updateGrandTotals() {
-        const table = document.getElementById('scoreTable');
-        const rows = table.rows;
-        const footer = rows[rows.length - 1];
-        players.forEach((_, pIdx) => {
-            let sum = 0;
-            for(let rIdx = 2; rIdx < rows.length - 1; rIdx++) {
-                sum += Number(rows[rIdx].cells[4 + pIdx * 3].innerText) || 0;
-            }
-            let targetCell = footer.cells[1 + pIdx];
-            targetCell.innerText = sum;
-            targetCell.className = "g-total " + (sum >= 0 ? "pos" : "neg");
-        });
-    }
-</script>
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-  import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyA_h1kas6HV-Lhk06sya2hsAMZmuQNAm9U",
-    authDomain: "marriage-card-tracker-b9b13.firebaseapp.com",
-    databaseURL: "https://marriage-card-tracker-b9b13-default-rtdb.firebaseio.com",
-    projectId: "marriage-card-tracker-b9b13",
-    storageBucket: "marriage-card-tracker-b9b13.firebasestorage.app",
-    messagingSenderId: "798170869634",
-    appId: "1:798170869634:web:3242fd686443a4f2c2699b",
-    measurementId: "G-JJDWXJN754"
-  };
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+import { getDatabase, ref, get, set, update } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
 
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
+const firebaseConfig = {
+  apiKey: "AIzaSyA_h1kas6HV-Lhk06sya2hsAMZmuQNAm9U",
+  authDomain: "marriage-card-tracker-b9b13.firebaseapp.com",
+  databaseURL: "https://marriage-card-tracker-b9b13-default-rtdb.firebaseio.com",
+  projectId: "marriage-card-tracker-b9b13",
+  storageBucket: "marriage-card-tracker-b9b13.appspot.com",
+  messagingSenderId: "798170869634",
+  appId: "1:798170869634:web:3242fd686443a4f2c2699b",
+  measurementId: "G-JJDWXJN754"
+};
 
-  // Universal save function
-  window.saveGame = function(gameData) {
-    push(ref(db, "games/"), gameData)
-      .then(() => console.log("Game saved!"))
-      .catch(err => console.error("Save error:", err));
-  };
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+let players = [];
+let rate = 10;
+let roundCount = 0;
+let currentGameID = null;
+let previousGameData = null;
+
+window.initUser = function () {
+  const id = document.getElementById("gameID").value.trim();
+  if (!id) return alert("Enter a game ID");
+  currentGameID = id;
+
+  const gameRef = ref(db, "games/" + id);
+
+  get(gameRef).then(snapshot => {
+
+    document.getElementById("user-setup").style.display = "none";
+
+    if (snapshot.exists()) {
+      previousGameData = snapshot.val();
+      document.getElementById("continue-box").style.display = "block";
+    } else {
+      document.getElementById("setup").style.display = "block";
+    }
+  });
+};
+
+window.startFresh = function () {
+  document.getElementById("continue-box").style.display = "none";
+  document.getElementById("setup").style.display = "block";
+};
+
+window.loadOldGame = function () {
+  document.getElementById("continue-box").style.display = "none";
+
+  players = previousGameData.players;
+  rate = previousGameData.rate;
+
+  document.getElementById("setup").style.display = "none";
+  document.getElementById("game-area").style.display = "block";
+
+  initTable();
+
+  previousGameData.rounds.forEach(r => renderSavedRound(r));
+};
+
+window.addPlayerField = function () {
+  const pc = document.getElementById("player-container");
+  if (pc.children.length >= 5) return alert("Max 5 players");
+  const input = document.createElement("input");
+  input.className = "p-name";
+  input.placeholder = "Player " + (pc.children.length + 1);
+  pc.appendChild(input);
+};
+
+window.startGame = function () {
+  players = [];
+  document.querySelectorAll('.p-name').forEach(p => {
+    if (p.value.trim()) players.push(p.value.trim());
+  });
+
+  if (players.length < 2) return alert("Minimum 2 players required");
+
+  rate = Number(document.getElementById("rate").value) || 10;
+
+  document.getElementById("setup").style.display = "none";
+  document.getElementById("game-area").style.display = "block";
+
+  initTable();
+  addRow();
+};
+
+function initTable() {
+  let table = document.getElementById("scoreTable");
+
+  let header = `<thead><tr><th>RD</th><th>WINNER</th>`;
+  players.forEach(p => header += `<th colspan="3">${p}</th>`);
+  header += `<th>TOTAL</th><th></th></tr>`;
+
+  let sub = `<tr><td></td><td></td>`;
+  players.forEach(() => {
+    sub += `<td>M</td><td>S</td><td>Cash</td>`;
+  });
+  sub += `<td></td><td></td></tr></thead><tbody id="tableBody"></tbody>`;
+
+  let footer = `<tr class="footer-row">
+      <td></td><td>TOTAL</td>
+      ${players.map(()=>`<td colspan="3" class="g-total">0</td>`).join("")}
+      <td id="session-total-maal">0</td>
+      <td></td></tr>`;
+
+  table.innerHTML = header + sub + footer;
+}
+
+window.addRow = function () {
+
+  if (roundCount > 0) {
+    let prev = document.getElementById(`row-${roundCount}`);
+    prev.querySelectorAll("input, select").forEach(e => e.disabled = true);
+  }
+
+  roundCount++;
+
+  let tbody = document.getElementById("tableBody");
+  let row = tbody.insertRow();
+  row.id = `row-${roundCount}`;
+
+  row.insertCell().innerText = roundCount;
+
+  let winCell = row.insertCell();
+  let sel = `<select onchange="calc(${roundCount})"><option value="-1">Select</option>`;
+  players.forEach((p,i)=> sel += `<option value="${i}">${p}</option>`);
+  winCell.innerHTML = sel + "</select>";
+
+  players.forEach(() => {
+    row.insertCell().innerHTML = `<input type="number" min="0" value="0" oninput="calc(${roundCount})">`;
+    row.insertCell().innerHTML = `<select onchange="calc(${roundCount})"><option>yes</option><option>no</option></select>`;
+    let c = row.insertCell();
+    c.innerText = "0";
+  });
+
+  row.insertCell().className = "tm-cell";
+  row.insertCell().innerHTML = `<button onclick="deleteRow(${roundCount})" class="btn btn-danger">X</button>`;
+
+  calc(roundCount);
+};
+
+window.deleteRow = function(n) {
+  document.getElementById(`row-${n}`).remove();
+  updateTotals();
+  saveGame();
+};
+
+window.calc = function(n) {
+  const row = document.getElementById(`row-${n}`);
+  const winIdx = parseInt(row.cells[1].querySelector('select').value);
+
+  let totalM = 0;
+  let stats = players.map((_,i)=>{
+    let m = parseInt(row.cells[2 + i*3].querySelector("input").value) || 0;
+    let s = row.cells[3 + i*3].querySelector("select").value;
+    if (s === "yes") totalM += m;
+    return {m,s};
+  });
+
+  if (winIdx >= 0) {
+    let sumOthers = 0;
+
+    players.forEach((_,i)=>{
+      if (i === winIdx) return;
+      let cash = stats[i].s === "no" ?
+        -((totalM + 10) * rate) :
+        ((stats[i].m * players.length) - (totalM + 3)) * rate;
+
+      let cCell = row.cells[4 + i*3];
+      cCell.innerText = Math.round(cash);
+      sumOthers += cash;
+    });
+
+    row.cells[4 + winIdx*3].innerText = Math.round(-sumOthers);
+  }
+
+  row.cells[row.cells.length - 2].innerText = totalM;
+  updateTotals();
+  saveGame();
+};
+
+function updateTotals() {
+  const tbody = document.getElementById('tableBody');
+  let sessionMaal = 0;
+
+  players.forEach((_,pIdx)=>{
+    let sum = 0;
+    Array.from(tbody.rows).forEach(r=>{
+      sum += Number(r.cells[4 + pIdx*3].innerText) || 0;
+    });
+    document.querySelectorAll('.g-total')[pIdx].innerText = sum;
+  });
+
+  Array.from(tbody.rows).forEach(r=>{
+    sessionMaal += Number(r.cells[r.cells.length - 2].innerText) || 0;
+  });
+
+  document.getElementById('session-total-maal').innerText = sessionMaal;
+}
+
+window.resetGame = function() {
+  location.reload();
+};
+
+function saveGame() {
+  const tbody = document.getElementById("tableBody");
+  const rounds = [];
+
+  Array.from(tbody.rows).forEach(row=>{
+    const winIdx = row.cells[1].querySelector("select").value;
+
+    let rd = {
+      round: row.cells[0].innerText,
+      winner: winIdx == -1 ? null : players[winIdx],
+      maal: [],
+      seen: [],
+      cash: [],
+      totalMaal: Number(row.cells[row.cells.length - 2].innerText) || 0
+    };
+
+    players.forEach((_,i)=>{
+      rd.maal.push(Number(row.cells[2+i*3].querySelector("input").value));
+      rd.seen.push(row.cells[3+i*3].querySelector("select").value);
+      rd.cash.push(Number(row.cells[4+i*3].innerText));
+    });
+
+    rounds.push(rd);
+  });
+
+  update(ref(db,"games/"+currentGameID),{
+    players: players,
+    rate: rate,
+    rounds: rounds,
+    updated: Date.now()
+  });
+}
+
+function renderSavedRound(r) {
+  addRow();
+
+  let row = document.getElementById(`row-${roundCount}`);
+  row.cells[1].querySelector("select").value =
+    r.winner ? players.indexOf(r.winner) : -1;
+
+  players.forEach((_,i)=>{
+    row.cells[2+i*3].querySelector("input").value = r.maal[i];
+    row.cells[3+i*3].querySelector("select").value = r.seen[i];
+    row.cells[4+i*3].innerText = r.cash[i];
+  });
+
+  row.cells[row.cells.length - 2].innerText = r.totalMaal;
+
+  calc(roundCount);
+}
 </script>
+
 </body>
 </html>
-
-
