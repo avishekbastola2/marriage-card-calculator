@@ -2,116 +2,126 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Marriage Card Tracker</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Nepal Marriage Tracker</title>
 
 <style>
-    body {
-        background: #0f172a;
-        color: white;
-        font-family: Arial, sans-serif;
-        text-align: center;
-        margin: 0;
-        padding: 0;
-    }
+:root { --bg:#0f172a; --panel:#1e293b; --accent:#6366f1; --win:#22c55e; --loss:#ef4444; --text:#f1f5f9; }
+body { background:var(--bg); color:var(--text); margin:0; padding:20px; font-family:sans-serif; }
 
-    .card {
-        background: #1e293b;
-        padding: 25px;
-        margin: 20px auto;
-        width: 90%;
-        max-width: 400px;
-        border-radius: 12px;
-        box-shadow: 0 0 15px rgba(0,0,0,0.4);
-    }
+.center-box {
+    max-width: 420px;
+    margin: 40px auto;
+    background: var(--panel);
+    padding: 25px;
+    border-radius: 12px;
+    text-align: center;
+    border: 1px solid #334155;
+}
 
-    input {
-        width: 90%;
-        padding: 12px;
-        border-radius: 8px;
-        border: none;
-        margin-bottom: 10px;
-        font-size: 18px;
-    }
+input, button, select {
+    font-size: 16px;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #475569;
+}
 
-    button {
-        padding: 12px 20px;
-        font-size: 18px;
-        border: none;
-        border-radius: 8px;
-        margin: 5px;
-        cursor: pointer;
-    }
+button {
+    cursor: pointer;
+    margin-top: 10px;
+    width: 100%;
+    font-weight: bold;
+}
 
-    .btn-primary { background: #6366f1; color:white; }
-    .btn-danger  { background: #ef4444; color:white; }
+.btn-primary { background: var(--accent); color: white; border: none; }
+.btn-add { background: var(--win); color: white; border: none; }
+.btn-danger { background: var(--loss); color: white; border: none; }
 
-    #flag {
-        width: 80px;
-        margin-bottom: 15px;
-    }
+.player-input-row { margin-bottom: 8px; }
+
+.table-wrap { overflow-x:auto; margin-top:20px; }
+table { width:100%; border-collapse:collapse; min-width:900px; }
+th, td { padding:8px; border:1px solid #334155; text-align:center; }
+th { background:#334155; color:#9ca3af; }
+
+.maal-input { width:50px; font-size:14px; font-weight:bold; text-align:center; }
+
+.pos { color:var(--win); font-weight:bold; }
+.neg { color:var(--loss); font-weight:bold; }
+.footer-row { background:#000; border-top:4px solid var(--accent); font-size:18px; }
+
+.flag {
+    width: 90px;
+    margin: 0 auto 15px auto;
+    display: block;
+}
 </style>
 </head>
 
 <body>
 
-<!-- ---------------- GAME ID SCREEN ---------------- -->
-<div id="user-setup" class="card">
-    <img id="flag" src="https://upload.wikimedia.org/wikipedia/commons/9/9b/Flag_of_Nepal.svg">
+<!-- GAME ID INPUT -->
+<div id="user-setup" class="center-box">
+    <img class="flag" src="https://upload.wikimedia.org/wikipedia/commons/9/9b/Flag_of_Nepal.png">
     <h2>Enter Game ID</h2>
-    <input type="text" id="gameID" placeholder="Game ID">
+
+    <input id="gameID" placeholder="Type Game ID">
     <button class="btn-primary" onclick="initUser()">Continue</button>
 </div>
 
-<!-- ---------------- CONTINUE OLD GAME SCREEN ---------------- -->
-<div id="continue-box" class="card" style="display:none;">
-    <h2>Game Found</h2>
-    <button class="btn-primary" onclick="loadOldGame()">Continue Previous Game</button>
-    <button class="btn-danger" onclick="startFresh()">Start New Game</button>
-</div>
+<!-- PLAYER SETUP -->
+<div id="setup" class="center-box" style="display:none;">
+    <h3>Player Setup</h3>
 
-<!-- ---------------- PLAYER SETUP SCREEN ---------------- -->
-<div id="setup" class="card" style="display:none;">
-    <h2>Player Names</h2>
-    <div id="playerInputs"></div>
-    <button class="btn-primary" onclick="addPlayer()">Add Player</button>
+    <label>Rate:</label>
+    <input type="number" id="rate" value="10">
+
+    <div id="player-container">
+        <div class="player-input-row"><input class="p-name" placeholder="Player 1"></div>
+        <div class="player-input-row"><input class="p-name" placeholder="Player 2"></div>
+    </div>
+
+    <button class="btn-add" onclick="addPlayerField()">+ Add Player</button>
     <button class="btn-primary" onclick="startGame()">Start Game</button>
 </div>
 
-<!-- ---------------- GAME SCREEN ---------------- -->
-<div id="game" class="card" style="display:none;">
-    <h2>Game Running</h2>
-    <p>Game will continue here...</p>
+<!-- GAME AREA -->
+<div id="game-area" style="display:none;">
+    <div class="table-wrap">
+        <table id="scoreTable"></table>
+    </div>
+
+    <button class="btn-add" onclick="addRow()">+ Next Round</button>
+    <button class="btn-danger" onclick="location.reload()">New Game</button>
 </div>
 
-<!-- ---------------- FIREBASE + LOGIC ---------------- -->
 <script type="module">
-
+/* ---------------- FIREBASE IMPORTS ---------------- */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
 import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
 
+/* ---------------- FIREBASE CONFIG ---------------- */
 const firebaseConfig = {
-  apiKey: "AIzaSyA_h1kas6HV-Lhk06sya2hsAMZmuQNAm9U",
-  authDomain: "marriage-card-tracker-b9b13.firebaseapp.com",
-  databaseURL: "https://marriage-card-tracker-b9b13-default-rtdb.firebaseio.com",
-  projectId: "marriage-card-tracker-b9b13",
-  storageBucket: "marriage-card-tracker-b9b13.appspot.com",
-  messagingSenderId: "798170869634",
-  appId: "1:798170869634:web:3242fd686443a4f2c2699b",
-  measurementId: "G-JJDWXJN754"
+    apiKey: "AIzaSyA_h1kas6HV-Lhk06sya2hsAMZmuQNAm9U",
+    authDomain: "marriage-card-tracker-b9b13.firebaseapp.com",
+    databaseURL: "https://marriage-card-tracker-b9b13-default-rtdb.firebaseio.com",
+    projectId: "marriage-card-tracker-b9b13",
+    storageBucket: "marriage-card-tracker-b9b13.firebasestorage.app",
+    messagingSenderId: "798170869634",
+    appId: "1:798170869634:web:3242fd686443a4f2c2699b"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
+/* ---------------- GLOBALS ---------------- */
+let players = [];
+let rate = 10;
+let roundCount = 0;
 let globalGameID = "";
-let storedGameData = null;
 
-// -----------------------------------------------------
-// 1) INIT USER
-// -----------------------------------------------------
+/* ---------------- INIT USER ---------------- */
 window.initUser = function () {
-
     const id = document.getElementById("gameID").value.trim();
     if (!id) { alert("Enter Game ID"); return; }
 
@@ -120,84 +130,224 @@ window.initUser = function () {
     const gameRef = ref(db, "games/" + id);
 
     get(gameRef).then(snapshot => {
-
-        document.getElementById("user-setup").style.display = "none";
-
         if (snapshot.exists()) {
-            storedGameData = snapshot.val();
-            document.getElementById("continue-box").style.display = "block";
+            if (confirm("Previous game found. Continue?")) {
+                loadExistingGame(snapshot.val());
+                document.getElementById("user-setup").style.display = "none";
+                document.getElementById("game-area").style.display = "block";
+            } else {
+                showPlayerSetup();
+            }
         } else {
-            document.getElementById("setup").style.display = "block";
-            addPlayer(); // add first player input automatically
+            showPlayerSetup();
         }
-
     });
 };
 
-// -----------------------------------------------------
-// 2) LOAD OLD GAME
-// -----------------------------------------------------
-window.loadOldGame = function () {
-    alert("Old game loaded! (You will see game UI soon)");
-    document.getElementById("continue-box").style.display = "none";
-    document.getElementById("game").style.display = "block";
-};
-
-// -----------------------------------------------------
-// 3) START FRESH GAME
-// -----------------------------------------------------
-window.startFresh = function () {
-    document.getElementById("continue-box").style.display = "none";
+/* ---------------- SHOW PLAYER SETUP ---------------- */
+function showPlayerSetup() {
+    document.getElementById("user-setup").style.display = "none";
     document.getElementById("setup").style.display = "block";
-};
+}
 
-// -----------------------------------------------------
-// 4) ADD PLAYER INPUT
-// -----------------------------------------------------
-let playerCount = 0;
-
-window.addPlayer = function () {
-    if (playerCount >= 5) {
-        alert("Maximum 5 players allowed.");
+/* ---------------- ADD PLAYER FIELD ---------------- */
+window.addPlayerField = function () {
+    const container = document.getElementById("player-container");
+    if (container.children.length >= 5) {
+        alert("Max 5 players allowed");
         return;
     }
-
-    playerCount++;
-    const div = document.getElementById("playerInputs");
-
-    const input = document.createElement("input");
-    input.placeholder = "Player " + playerCount;
-    input.id = "player" + playerCount;
-
-    div.appendChild(input);
+    const div = document.createElement("div");
+    div.className = "player-input-row";
+    div.innerHTML = `<input class="p-name" placeholder="Player ${container.children.length + 1}">`;
+    container.appendChild(div);
 };
 
-// -----------------------------------------------------
-// 5) START GAME (NEW GAME)
-// -----------------------------------------------------
+/* ---------------- START GAME ---------------- */
 window.startGame = function () {
+    rate = Number(document.getElementById("rate").value) || 10;
 
-    let players = [];
-    for (let i = 1; i <= playerCount; i++) {
-        let name = document.getElementById("player" + i).value.trim();
-        if (name) players.push(name);
-    }
-
-    if (players.length < 2) {
-        alert("At least 2 players needed.");
-        return;
-    }
-
-    // SAVE NEW GAME TO FIREBASE
-    set(ref(db, "games/" + globalGameID), {
-        players: players,
-        rounds: []
+    players = [];
+    document.querySelectorAll(".p-name").forEach(i => {
+        if (i.value.trim()) players.push(i.value.trim());
     });
+
+    if (players.length < 2) return alert("Enter at least 2 players!");
 
     document.getElementById("setup").style.display = "none";
-    document.getElementById("game").style.display = "block";
+    document.getElementById("game-area").style.display = "block";
+
+    initTable();
+    addRow();
 };
 
+/* ---------------- INIT TABLE ---------------- */
+function initTable() {
+    let table = document.getElementById("scoreTable");
+
+    let head = `<thead><tr><th>RD</th><th>WINNER</th>`;
+    players.forEach(p => head += `<th colspan="3">${p}</th>`);
+    head += `<th>TOTAL MAAL</th></tr>`;
+
+    let sub = `<tr><td></td><td></td>`;
+    players.forEach(() => sub += `<td>M</td><td>S</td><td>Cash</td>`);
+    sub += `<td></td></tr></thead>`;
+
+    let foot = `<tr class="footer-row"><td></td><td>Total</td>`;
+    players.forEach(() => foot += `<td colspan="3" class="g-total">0</td>`);
+    foot += `<td id="session-total-maal">0</td></tr>`;
+
+    table.innerHTML = head + sub + `<tbody id="tableBody"></tbody>` + foot;
+}
+
+/* ---------------- ADD ROUND ---------------- */
+window.addRow = function () {
+    roundCount++;
+
+    const tbody = document.getElementById("tableBody");
+    const row = tbody.insertRow();
+    row.id = `row-${roundCount}`;
+
+    row.insertCell().innerText = roundCount;
+
+    let winnerCell = row.insertCell();
+    let select = `<select onchange="calc(${roundCount})"><option value="-1">Select</option>`;
+    players.forEach((p, i) => select += `<option value="${i}">${p}</option>`);
+    select += `</select>`;
+    winnerCell.innerHTML = select;
+
+    players.forEach((p, i) => {
+        row.insertCell().innerHTML = `<input type="number" class="maal-input" value="0" min="0" oninput="calc(${roundCount})">`;
+        row.insertCell().innerHTML = `<select onchange="calc(${roundCount})"><option value="yes">YES</option><option value="no">NO</option></select>`;
+        row.insertCell().innerText = "0";
+    });
+
+    row.insertCell().innerText = "0";
+
+    calc(roundCount);
+};
+
+/* ---------------- CALCULATE ---------------- */
+window.calc = function (rNum) {
+    const row = document.getElementById(`row-${rNum}`);
+    const winner = Number(row.cells[1].querySelector("select").value);
+
+    let totalMaal = 0;
+    let stats = [];
+
+    players.forEach((p, i) => {
+        let m = Number(row.cells[2 + i*3].querySelector("input").value) || 0;
+        let s = row.cells[3 + i*3].querySelector("select").value;
+        if (s === "yes") totalMaal += m;
+        stats.push({ m, s });
+    });
+
+    if (winner >= 0) {
+        let othersTotal = 0;
+
+        players.forEach((p, i) => {
+            if (i === winner) return;
+
+            let cash = (stats[i].s === "no") ?
+                -(totalMaal + 10) * rate :
+                ((stats[i].m * players.length) - (totalMaal + 3)) * rate;
+
+            row.cells[4 + i*3].innerText = cash;
+            row.cells[4 + i*3].className = cash >= 0 ? "pos" : "neg";
+            othersTotal += cash;
+        });
+
+        let winCash = -othersTotal;
+        row.cells[4 + winner*3].innerText = winCash;
+        row.cells[4 + winner*3].className = winCash >= 0 ? "pos" : "neg";
+    }
+
+    row.cells[row.cells.length - 1].innerText = totalMaal;
+    updateTotals();
+    saveGame();
+};
+
+/* ---------------- UPDATE TOTALS ---------------- */
+function updateTotals() {
+    const tbody = document.getElementById("tableBody");
+
+    players.forEach((p, i) => {
+        let sum = 0;
+        Array.from(tbody.rows).forEach(row => {
+            sum += Number(row.cells[4 + i*3].innerText) || 0;
+        });
+        document.getElementsByClassName("g-total")[i].innerText = sum;
+    });
+
+    let sessionMaal = 0;
+    Array.from(tbody.rows).forEach(row => {
+        sessionMaal += Number(row.cells[row.cells.length - 1].innerText) || 0;
+    });
+    document.getElementById("session-total-maal").innerText = sessionMaal;
+}
+
+/* ---------------- SAVE TO FIREBASE ---------------- */
+function saveGame() {
+    const tbody = document.getElementById("tableBody");
+
+    let rounds = [];
+    Array.from(tbody.rows).forEach(row => {
+        const win = Number(row.cells[1].querySelector("select").value);
+
+        let data = {
+            round: Number(row.cells[0].innerText),
+            winner: win >= 0 ? players[win] : null,
+            maal: [],
+            seen: [],
+            cash: [],
+            totalMaal: Number(row.cells[row.cells.length - 1].innerText)
+        };
+
+        players.forEach((p, i) => {
+            data.maal.push(Number(row.cells[2 + i*3].querySelector("input").value));
+            data.seen.push(row.cells[3 + i*3].querySelector("select").value);
+            data.cash.push(Number(row.cells[4 + i*3].innerText));
+        });
+
+        rounds.push(data);
+    });
+
+    const saveRef = ref(db, "games/" + globalGameID);
+    set(saveRef, {
+        rate: rate,
+        players: players,
+        rounds: rounds
+    });
+}
+
+/* ---------------- LOAD PREVIOUS GAME ---------------- */
+window.loadExistingGame = function (data) {
+    players = data.players;
+    rate = data.rate;
+
+    document.getElementById("setup").style.display = "none";
+    document.getElementById("game-area").style.display = "block";
+
+    initTable();
+
+    roundCount = 0;
+
+    data.rounds.forEach(r => {
+        addRow();
+        const row = document.getElementById(`row-${r.round}`);
+
+        row.cells[1].querySelector("select").value = players.indexOf(r.winner);
+
+        players.forEach((p, i) => {
+            row.cells[2 + i*3].querySelector("input").value = r.maal[i];
+            row.cells[3 + i*3].querySelector("select").value = r.seen[i];
+            row.cells[4 + i*3].innerText = r.cash[i];
+        });
+
+        row.cells[row.cells.length - 1].innerText = r.totalMaal;
+        calc(r.round);
+    });
+};
 </script>
 
 </body>
