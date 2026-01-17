@@ -2,83 +2,77 @@
 <html>
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nepal Marriage Tracker - Live</title>
+    <title>Nepal Marriage - Live Tracker</title>
     <style>
         :root { --bg: #0f172a; --panel: #1e293b; --accent: #6366f1; --win: #22c55e; --loss: #ef4444; }
         body { background: var(--bg); color: white; font-family: sans-serif; margin: 0; padding: 10px; }
         .card { background: var(--panel); padding: 20px; border-radius: 12px; max-width: 500px; margin: 20px auto; text-align: center; border: 1px solid #334155; }
-        input, select { width: 80%; padding: 12px; margin: 10px 0; border-radius: 6px; border: 1px solid #475569; background: #0f172a; color: white; }
-        button { width: 85%; padding: 12px; background: var(--accent); color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        .flag { width: 60px; margin-bottom: 10px; }
-        
-        /* Table Styling */
-        .table-wrap { overflow-x: auto; margin-top: 20px; background: #111827; border-radius: 8px; border: 1px solid #334155; }
-        table { width: 100%; border-collapse: collapse; min-width: 600px; font-size: 13px; }
+        input, select { width: 85%; padding: 12px; margin: 10px 0; border-radius: 6px; border: 1px solid #475569; background: #0f172a; color: white; }
+        button { width: 90%; padding: 12px; background: var(--accent); color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .table-wrap { overflow-x: auto; margin-top: 20px; background: #111827; border-radius: 8px; }
+        table { width: 100%; border-collapse: collapse; min-width: 700px; font-size: 12px; }
         th, td { border: 1px solid #334155; padding: 8px; text-align: center; }
-        .pos { color: var(--win); } .neg { color: var(--loss); }
-        .maal-in { width: 40px; background: white !important; color: black !important; font-weight: bold; border-radius: 4px; border: none; padding: 4px; }
+        .pos { color: var(--win); font-weight: bold; }
+        .neg { color: var(--loss); font-weight: bold; }
+        .maal-in { width: 45px; background: white !important; color: black !important; font-weight: bold; border-radius: 4px; border: none; padding: 5px; }
+        .seen-sel { width: 60px; background: #1e293b; color: white; border: 1px solid #475569; font-size: 10px; }
     </style>
 </head>
 <body>
 
 <div id="app">
     <div id="gameID-screen" class="card">
-        <img class="flag" src="https://upload.wikimedia.org/wikipedia/commons/9/9b/Flag_of_Nepal.png">
-        <h2>Nepal Marriage Live</h2>
-        <input id="gameID" placeholder="Enter Room Name (e.g. Pokhara-Room)">
-        <button onclick="startGameID()">Join / Create Room</button>
+        <img style="width:50px;" src="https://upload.wikimedia.org/wikipedia/commons/9/9b/Flag_of_Nepal.png">
+        <h2>Marriage Live</h2>
+        <input id="gameID" placeholder="Room Name (e.g. friday-poker)">
+        <button onclick="startGameID()">Join / Create</button>
     </div>
 
     <div id="player-screen" class="card" style="display:none;">
-        <h2>Room: <span id="displayID"></span></h2>
+        <h3>Room: <span id="displayID" style="color:var(--accent)"></span></h3>
         <input id="playerName" placeholder="Player Name">
         <button onclick="addPlayer()">Add Player</button>
-        <p id="playerList" style="text-align: left; padding: 10px;"></p>
-        <input type="number" id="rate" value="10" placeholder="Rate">
-        <button style="background: var(--win);" onclick="startGame()">Start Game</button>
+        <div id="playerList" style="margin: 15px 0; text-align: left; padding-left: 20px;"></div>
+        <input type="number" id="rate" value="10" placeholder="Rate per point">
+        <button style="background: var(--win);" onclick="startGame()">Start Scoreboard</button>
     </div>
 
     <div id="game-screen" style="display:none;">
-        <div class="card" style="max-width: 95%;">
-            <h3>Live Scoreboard: <span id="activeID"></span></h3>
+        <div class="card" style="max-width: 98%;">
+            <h3>Live: <span id="activeID"></span> | Rate: <span id="activeRate"></span></h3>
             <div class="table-wrap">
                 <table id="scoreTable"></table>
             </div>
-            <button onclick="addNewRound()" style="width: 200px;">+ Next Round</button>
-            <button onclick="location.reload()" style="width: 200px; background: #475569;">Exit Room</button>
+            <button onclick="addNewRound()" style="width:180px;">+ Next Round</button>
+            <button onclick="location.reload()" style="width:180px; background:#475569;">Exit</button>
         </div>
     </div>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, set, onValue, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getDatabase, ref, set, onValue, update, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-// Your Config
 const firebaseConfig = {
     apiKey: "AIzaSyA_h1kas6HV-Lhk06sya2hsAMZmuQNAm9U",
     authDomain: "marriage-card-tracker-b9b13.firebaseapp.com",
     databaseURL: "https://marriage-card-tracker-b9b13-default-rtdb.firebaseio.com",
-    projectId: "marriage-card-tracker-b9b13",
-    storageBucket: "marriage-card-tracker-b9b13.appspot.com",
-    messagingSenderId: "798170869634",
-    appId: "1:798170869634:web:3242fd686443a4f2c2699b"
+    projectId: "marriage-card-tracker-b9b13"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-let globalGameID = "";
+let globalID = "";
 let players = [];
 let rate = 10;
 
-// STEP 1: JOIN ROOM
+// 1. JOIN ROOM LOGIC
 window.startGameID = function() {
     const id = document.getElementById("gameID").value.trim().toLowerCase();
-    if (!id) return alert("Enter Room Name");
-    globalGameID = id;
-    
-    // Listen for data in this room
+    if (!id) return alert("Enter a room name");
+    globalID = id;
+
     onValue(ref(db, "games/" + id), (snapshot) => {
         const data = snapshot.val();
         if (data) {
@@ -86,6 +80,8 @@ window.startGameID = function() {
             rate = data.rate || 10;
             if (data.status === "active") {
                 showScreen("game-screen");
+                document.getElementById("activeID").innerText = globalID;
+                document.getElementById("activeRate").innerText = rate;
                 renderTable(data.rounds || []);
             } else {
                 showScreen("player-screen");
@@ -94,99 +90,109 @@ window.startGameID = function() {
         } else {
             showScreen("player-screen");
         }
-        document.getElementById("displayID").innerText = id;
-        document.getElementById("activeID").innerText = id;
+        document.getElementById("displayID").innerText = globalID;
     });
 };
 
-// STEP 2: PLAYER SETUP
+// 2. PLAYER SETUP
 window.addPlayer = function() {
     const name = document.getElementById("playerName").value.trim();
     if (!name || players.length >= 5) return;
     players.push(name);
-    update(ref(db, "games/" + globalGameID), { players: players });
+    update(ref(db, "games/" + globalID), { players: players });
     document.getElementById("playerName").value = "";
 };
 
 function updatePlayerList() {
-    document.getElementById("playerList").innerHTML = players.map((p, i) => `<b>${i+1}.</b> ${p}`).join("<br>");
+    document.getElementById("playerList").innerHTML = players.map((p, i) => `<div>${i+1}. ${p}</div>`).join("");
 }
 
-// STEP 3: START CALCULATOR
 window.startGame = function() {
-    if (players.length < 2) return alert("Min 2 players");
-    const r = document.getElementById("rate").value;
-    update(ref(db, "games/" + globalGameID), { 
-        status: "active", 
-        rate: Number(r),
-        rounds: [{ winner: 0 }] // Initial round
+    if (players.length < 2) return alert("Need 2+ players");
+    const r = Number(document.getElementById("rate").value) || 10;
+    set(ref(db, "games/" + globalID), {
+        players: players,
+        rate: r,
+        status: "active",
+        rounds: [{ winner: 0, data: players.map(() => ({m: 0, s: 'yes'})) }]
     });
 };
 
-// STEP 4: RENDER LIVE TABLE
+// 3. TABLE RENDERING & CALCULATION
 function renderTable(rounds) {
-    let table = document.getElementById("scoreTable");
-    let header = `<tr><th>Rd</th><th>Winner</th>` + players.map(p => `<th colspan="2">${p}</th>`).join('') + `</tr>`;
-    table.innerHTML = header;
-
-    let totals = players.map(() => 0);
+    const table = document.getElementById("scoreTable");
+    let html = `<tr><th>Rd</th><th>Winner</th>` + players.map(p => `<th colspan="2">${p}</th>`).join('') + `</tr>`;
+    
+    let grandTotals = players.map(() => 0);
 
     rounds.forEach((round, rIdx) => {
-        let tr = document.createElement("tr");
-        tr.innerHTML = `<td>${rIdx+1}</td>`;
-        
-        // Winner Selection
-        let winTd = document.createElement("td");
-        let sel = `<select onchange="updateRound(${rIdx}, 'winner', this.value)">`;
-        players.forEach((p, i) => sel += `<option value="${i}" ${round.winner == i ? 'selected' : ''}>${p}</option>`);
-        winTd.innerHTML = sel + `</select>`;
-        tr.appendChild(winTd);
-
-        // Individual Player Columns
+        let totalMaal = 0;
+        // Step A: Calculate Total Maal for the round (Seen players only)
         players.forEach((_, pIdx) => {
-            let mVal = (round.data && round.data[pIdx]) ? round.data[pIdx].m : 0;
-            let sVal = (round.data && round.data[pIdx]) ? round.data[pIdx].s : 'yes';
-            
-            // Calc Score for this player
-            let score = calculateScore(round, pIdx, rounds.length, rounds[rIdx].totalMaal);
-            totals[pIdx] += score;
-
-            tr.innerHTML += `
-                <td><input type="number" class="maal-in" value="${mVal}" onchange="updatePlayerData(${rIdx}, ${pIdx}, 'm', this.value)"></td>
-                <td class="${score >= 0 ? 'pos' : 'neg'}">${score}</td>
-            `;
+            const pData = round.data ? round.data[pIdx] : {m:0, s:'yes'};
+            if (pData.s === 'yes') totalMaal += (Number(pData.m) || 0);
         });
-        table.appendChild(tr);
+
+        html += `<tr><td>${rIdx+1}</td><td><select onchange="updateWinner(${rIdx}, this.value)">`;
+        players.forEach((p, i) => html += `<option value="${i}" ${round.winner == i ? 'selected' : ''}>${p}</option>`);
+        html += `</select></td>`;
+
+        let roundCash = players.map(() => 0);
+        let othersTotal = 0;
+        let winIdx = round.winner || 0;
+
+        // Step B: Calculate Losers
+        players.forEach((_, pIdx) => {
+            if (pIdx === winIdx) return;
+            const pData = round.data ? round.data[pIdx] : {m:0, s:'yes'};
+            let cash = 0;
+            if (pData.s === 'no') {
+                cash = -((totalMaal + 10) * rate);
+            } else {
+                cash = ((Number(pData.m) * players.length) - (totalMaal + 3)) * rate;
+            }
+            roundCash[pIdx] = Math.round(cash);
+            othersTotal += cash;
+        });
+
+        // Step C: Winner gets the rest
+        roundCash[winIdx] = Math.round(-othersTotal);
+
+        // Step D: Build Row
+        players.forEach((_, pIdx) => {
+            const pData = round.data ? round.data[pIdx] : {m:0, s:'yes'};
+            const cash = roundCash[pIdx];
+            grandTotals[pIdx] += cash;
+            html += `
+                <td><input type="number" class="maal-in" value="${pData.m || 0}" onchange="updateMaal(${rIdx}, ${pIdx}, this.value)">
+                <br><select class="seen-sel" onchange="updateSeen(${rIdx}, ${pIdx}, this.value)">
+                    <option value="yes" ${pData.s === 'yes' ? 'selected' : ''}>S</option>
+                    <option value="no" ${pData.s === 'no' ? 'selected' : ''}>U</option>
+                </select></td>
+                <td class="${cash >= 0 ? 'pos' : 'neg'}">${cash}</td>`;
+        });
+        html += `</tr>`;
     });
 
-    // Total Row
-    let fRow = `<tr style="background:#000"><td></td><td>TOTAL</td>` + totals.map(t => `<td colspan="2" class="${t>=0?'pos':'neg'}">${t}</td>`).join('') + `</tr>`;
-    table.innerHTML += fRow;
+    // Grand Totals Row
+    html += `<tr style="background:#000; font-weight:bold;"><td></td><td>TOTAL</td>` + 
+            grandTotals.map(t => `<td colspan="2" class="${t>=0?'pos':'neg'}">${t}</td>`).join('') + `</tr>`;
+    
+    table.innerHTML = html;
 }
 
-// DATA SYNCING
-window.updateRound = function(rIdx, key, val) {
-    update(ref(db, `games/${globalGameID}/rounds/${rIdx}`), { [key]: val });
-};
-
-window.updatePlayerData = function(rIdx, pIdx, key, val) {
-    update(ref(db, `games/${globalGameID}/rounds/${rIdx}/data/${pIdx}`), { [key]: Number(val) });
-};
+// 4. DATABASE UPDATES
+window.updateWinner = (rIdx, val) => update(ref(db, `games/${globalID}/rounds/${rIdx}`), { winner: Number(val) });
+window.updateMaal = (rIdx, pIdx, val) => update(ref(db, `games/${globalID}/rounds/${rIdx}/data/${pIdx}`), { m: Number(val) });
+window.updateSeen = (rIdx, pIdx, val) => update(ref(db, `games/${globalID}/rounds/${rIdx}/data/${pIdx}`), { s: val });
 
 window.addNewRound = function() {
-    onValue(ref(db, `games/${globalGameID}/rounds`), (snapshot) => {
-        const currentRounds = snapshot.val() || [];
-        set(ref(db, `games/${globalGameID}/rounds`), [...currentRounds, { winner: 0, data: players.map(() => ({m:0, s:'yes'})) }]);
-    }, { onlyOnce: true });
+    get(ref(db, `games/${globalID}/rounds`)).then(snap => {
+        let rounds = snap.val() || [];
+        rounds.push({ winner: 0, data: players.map(() => ({m: 0, s: 'yes'})) });
+        update(ref(db, "games/" + globalID), { rounds: rounds });
+    });
 };
-
-// THE CALCULATION LOGIC
-function calculateScore(round, pIdx, totalPlayers, roundTotalMaal) {
-    if (!round.data || round.winner === undefined) return 0;
-    // Note: To keep code brief for this demo, I'm using simplified logic. 
-    // You can paste your full calc() function here to handle unseen penalties!
-    return 0; 
-}
 
 function showScreen(id) {
     ["gameID-screen", "player-screen", "game-screen"].forEach(s => document.getElementById(s).style.display = "none");
