@@ -6,49 +6,118 @@
     <style>
         :root { --bg: #0f172a; --panel: #1e293b; --accent: #6366f1; --win: #22c55e; --loss: #ef4444; }
         body { background: var(--bg); color: white; font-family: sans-serif; margin: 0; padding: 10px; }
-        .card { background: var(--panel); padding: 20px; border-radius: 12px; max-width: 500px; margin: 20px auto; text-align: center; border: 1px solid #334155; }
-        input, select { width: 85%; padding: 12px; margin: 10px 0; border-radius: 6px; border: 1px solid #475569; background: #0f172a; color: white; }
-        button { width: 90%; padding: 12px; background: var(--accent); color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        .table-wrap { overflow-x: auto; margin-top: 20px; background: #111827; border-radius: 8px; }
-        table { width: 100%; border-collapse: collapse; min-width: 700px; font-size: 12px; }
-        th, td { border: 1px solid #334155; padding: 8px; text-align: center; }
+
+        .card {
+            background: var(--panel);
+            padding: 20px;
+            border-radius: 12px;
+            max-width: 500px;
+            margin: 40px auto;
+            text-align: center;
+            border: 1px solid #334155;
+        }
+
+        input, select {
+            width: 85%;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 6px;
+            border: 1px solid #475569;
+            background: #0f172a;
+            color: white;
+        }
+
+        button {
+            width: 90%;
+            padding: 12px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+            margin-top: 20px;
+            background: #111827;
+            border-radius: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 700px;
+            font-size: 12px;
+        }
+
+        th, td {
+            border: 1px solid #334155;
+            padding: 8px;
+            text-align: center;
+        }
+
         .pos { color: var(--win); font-weight: bold; }
         .neg { color: var(--loss); font-weight: bold; }
-        .maal-in { width: 45px; background: white !important; color: black !important; font-weight: bold; border-radius: 4px; border: none; padding: 5px; }
-        .seen-sel { width: 60px; background: #1e293b; color: white; border: 1px solid #475569; font-size: 10px; }
+
+        .maal-in { 
+            width: 45px;
+            background: white !important; 
+            color: black !important; 
+            font-weight: bold; 
+            border-radius: 4px; 
+            border: none; 
+            padding: 5px;
+        }
+
+        .seen-sel {
+            width: 60px;
+            background: #1e293b;
+            color: white;
+            border: 1px solid #475569;
+            font-size: 10px;
+        }
     </style>
 </head>
 <body>
 
-<div id="app">
-    <div id="gameID-screen" class="card">
-        <img style="width:50px;" src="https://upload.wikimedia.org/wikipedia/commons/9/9b/Flag_of_Nepal.png">
-        <h2>Marriage Live</h2>
-        <input id="gameID" placeholder="Room Name (e.g. friday-poker)">
-        <button onclick="startGameID()">Join / Create</button>
-    </div>
+<div id="gameID-screen" class="card">
+    <img style="width:50px;" src="https://upload.wikimedia.org/wikipedia/commons/9/9b/Flag_of_Nepal.svg" style="width:70px; margin-bottom:10px; display:block; margin-left:auto; margin-right:auto;">
 
+    <h2>MARRIAGE card game live score <br> by AVISHEK</h2>
+    <input id="gameID" placeholder="Room Name (e.g. Hetaudeli-Samdi)">
+    <button onclick="startGameID()">Join / Create</button>
+</div>
+    <!-- PLAYER SETUP SCREEN -->
     <div id="player-screen" class="card" style="display:none;">
         <h3>Room: <span id="displayID" style="color:var(--accent)"></span></h3>
         <input id="playerName" placeholder="Player Name">
         <button onclick="addPlayer()">Add Player</button>
         <div id="playerList" style="margin: 15px 0; text-align: left; padding-left: 20px;"></div>
+
         <input type="number" id="rate" value="10" placeholder="Rate per point">
+
         <button style="background: var(--win);" onclick="startGame()">Start Scoreboard</button>
     </div>
 
+    <!-- GAME SCREEN -->
     <div id="game-screen" style="display:none;">
         <div class="card" style="max-width: 98%;">
-            <h3>Live: <span id="activeID"></span> | Rate: <span id="activeRate"></span></h3>
+            <h3>Room: <span id="activeID"></span> | Rate: <span id="activeRate"></span></h3>
+
             <div class="table-wrap">
                 <table id="scoreTable"></table>
             </div>
+
             <button onclick="addNewRound()" style="width:180px;">+ Next Round</button>
             <button onclick="location.reload()" style="width:180px; background:#475569;">Exit</button>
         </div>
     </div>
 </div>
 
+<!-- FIREBASE SCRIPT -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getDatabase, ref, set, onValue, update, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
@@ -67,137 +136,200 @@ let globalID = "";
 let players = [];
 let rate = 10;
 
-// 1. JOIN ROOM LOGIC
+/* JOIN ROOM */
 window.startGameID = function() {
     const id = document.getElementById("gameID").value.trim().toLowerCase();
     if (!id) return alert("Enter a room name");
+
     globalID = id;
 
-    onValue(ref(db, "games/" + id), (snapshot) => {
+    const path = ref(db, "games/" + id);
+    onValue(path, (snapshot) => {
         const data = snapshot.val();
-        if (data) {
+
+        if (!data) {
+            // NEW ROOM
+            showScreen("player-screen");
+            players = [];
+            updatePlayerList();
+        } else {
+            // EXISTING ROOM
             players = data.players || [];
             rate = data.rate || 10;
+
             if (data.status === "active") {
+                // Resume running game
                 showScreen("game-screen");
                 document.getElementById("activeID").innerText = globalID;
                 document.getElementById("activeRate").innerText = rate;
                 renderTable(data.rounds || []);
             } else {
+                // Room exists but not started
                 showScreen("player-screen");
                 updatePlayerList();
             }
-        } else {
-            showScreen("player-screen");
         }
+
         document.getElementById("displayID").innerText = globalID;
     });
 };
 
-// 2. PLAYER SETUP
+/* ADD PLAYER */
 window.addPlayer = function() {
     const name = document.getElementById("playerName").value.trim();
-    if (!name || players.length >= 5) return;
+    if (!name) return;
+    if (players.length >= 5) return alert("Max 5 players");
+
     players.push(name);
     update(ref(db, "games/" + globalID), { players: players });
+
     document.getElementById("playerName").value = "";
 };
 
+/* SHOW PLAYER LIST */
 function updatePlayerList() {
-    document.getElementById("playerList").innerHTML = players.map((p, i) => `<div>${i+1}. ${p}</div>`).join("");
+    document.getElementById("playerList").innerHTML =
+        players.map((p, i) => `<div>${i+1}. ${p}</div>`).join("");
 }
 
+/* START GAME */
 window.startGame = function() {
-    if (players.length < 2) return alert("Need 2+ players");
+    if (players.length < 2) return alert("Need at least 2 players");
+
     const r = Number(document.getElementById("rate").value) || 10;
+
     set(ref(db, "games/" + globalID), {
         players: players,
         rate: r,
         status: "active",
-        rounds: [{ winner: 0, data: players.map(() => ({m: 0, s: 'yes'})) }]
+        rounds: [
+            { winner: 0, data: players.map(() => ({m: 0, s: 'yes'})) }
+        ]
     });
 };
 
-// 3. TABLE RENDERING & CALCULATION
+/* RENDER SCORE TABLE */
 function renderTable(rounds) {
     const table = document.getElementById("scoreTable");
-    let html = `<tr><th>Rd</th><th>Winner</th>` + players.map(p => `<th colspan="2">${p}</th>`).join('') + `</tr>`;
-    
+
+    let html = `<tr><th>Rd</th><th>Winner</th>`;
+    html += players.map(p => `<th colspan="2">${p}</th>`).join('');
+    html += `</tr>`;
+
     let grandTotals = players.map(() => 0);
 
     rounds.forEach((round, rIdx) => {
         let totalMaal = 0;
-        // Step A: Calculate Total Maal for the round (Seen players only)
+
         players.forEach((_, pIdx) => {
-            const pData = round.data ? round.data[pIdx] : {m:0, s:'yes'};
-            if (pData.s === 'yes') totalMaal += (Number(pData.m) || 0);
+            const pData = round.data[pIdx];
+            if (pData.s === 'yes') totalMaal += Number(pData.m);
         });
 
-        html += `<tr><td>${rIdx+1}</td><td><select onchange="updateWinner(${rIdx}, this.value)">`;
-        players.forEach((p, i) => html += `<option value="${i}" ${round.winner == i ? 'selected' : ''}>${p}</option>`);
+        html += `<tr><td>${rIdx+1}</td><td>
+            <select onchange="updateWinner(${rIdx}, this.value)">`;
+
+        players.forEach((p, i) => {
+            html += `<option value="${i}" ${round.winner==i?'selected':''}>${p}</option>`;
+        });
+
         html += `</select></td>`;
 
         let roundCash = players.map(() => 0);
         let othersTotal = 0;
-        let winIdx = round.winner || 0;
+        let winIdx = round.winner;
 
-        // Step B: Calculate Losers
         players.forEach((_, pIdx) => {
             if (pIdx === winIdx) return;
-            const pData = round.data ? round.data[pIdx] : {m:0, s:'yes'};
+
+            const pData = round.data[pIdx];
             let cash = 0;
+
             if (pData.s === 'no') {
                 cash = -((totalMaal + 10) * rate);
             } else {
                 cash = ((Number(pData.m) * players.length) - (totalMaal + 3)) * rate;
             }
-            roundCash[pIdx] = Math.round(cash);
+
+            roundCash[pIdx] = cash;
             othersTotal += cash;
         });
 
-        // Step C: Winner gets the rest
-        roundCash[winIdx] = Math.round(-othersTotal);
+        roundCash[winIdx] = -othersTotal;
 
-        // Step D: Build Row
         players.forEach((_, pIdx) => {
-            const pData = round.data ? round.data[pIdx] : {m:0, s:'yes'};
+            const pData = round.data[pIdx];
             const cash = roundCash[pIdx];
+
             grandTotals[pIdx] += cash;
+
             html += `
-                <td><input type="number" class="maal-in" value="${pData.m || 0}" onchange="updateMaal(${rIdx}, ${pIdx}, this.value)">
-                <br><select class="seen-sel" onchange="updateSeen(${rIdx}, ${pIdx}, this.value)">
-                    <option value="yes" ${pData.s === 'yes' ? 'selected' : ''}>S</option>
-                    <option value="no" ${pData.s === 'no' ? 'selected' : ''}>U</option>
-                </select></td>
-                <td class="${cash >= 0 ? 'pos' : 'neg'}">${cash}</td>`;
+            <td>
+                <input type="number" class="maal-in" value="${pData.m}" onchange="updateMaal(${rIdx}, ${pIdx}, this.value)">
+                <br>
+                <select class="seen-sel" onchange="updateSeen(${rIdx}, ${pIdx}, this.value)">
+                    <option value="yes" ${pData.s==='yes'?'selected':''}>S</option>
+                    <option value="no" ${pData.s==='no'?'selected':''}>U</option>
+                </select>
+            </td>
+            <td class="${cash>=0?'pos':'neg'}">${cash}</td>`;
         });
+
         html += `</tr>`;
     });
 
-    // Grand Totals Row
-    html += `<tr style="background:#000; font-weight:bold;"><td></td><td>TOTAL</td>` + 
-            grandTotals.map(t => `<td colspan="2" class="${t>=0?'pos':'neg'}">${t}</td>`).join('') + `</tr>`;
-    
+    html += `<tr style="background:#000; font-weight:bold;">
+        <td></td><td>Total</td>`;
+
+    grandTotals.forEach(t => {
+        html += `<td colspan="2" class="${t>=0?'pos':'neg'}">${t}</td>`;
+    });
+
+    html += `</tr>`;
+
     table.innerHTML = html;
 }
 
-// 4. DATABASE UPDATES
-window.updateWinner = (rIdx, val) => update(ref(db, `games/${globalID}/rounds/${rIdx}`), { winner: Number(val) });
-window.updateMaal = (rIdx, pIdx, val) => update(ref(db, `games/${globalID}/rounds/${rIdx}/data/${pIdx}`), { m: Number(val) });
-window.updateSeen = (rIdx, pIdx, val) => update(ref(db, `games/${globalID}/rounds/${rIdx}/data/${pIdx}`), { s: val });
+/* DATABASE UPDATES */
+window.updateWinner = (rIdx, val) =>
+    update(ref(db, `games/${globalID}/rounds/${rIdx}`), { winner: Number(val) });
 
+window.updateMaal = (rIdx, pIdx, val) =>
+    update(ref(db, `games/${globalID}/rounds/${rIdx}/data/${pIdx}`), { m: Number(val) });
+
+window.updateSeen = (rIdx, pIdx, val) =>
+    update(ref(db, `games/${globalID}/rounds/${rIdx}/data/${pIdx}`), { s: val });
+
+/* ADD ROUND */
 window.addNewRound = function() {
     get(ref(db, `games/${globalID}/rounds`)).then(snap => {
         let rounds = snap.val() || [];
+
+        // Freeze previous round
+        if(rounds.length > 0) {
+            const table = document.getElementById("scoreTable");
+            const prevRow = table.rows[rounds.length]; // 0-based: header row + first round = index 1
+            if(prevRow) {
+                Array.from(prevRow.querySelectorAll("input, select")).forEach(el => {
+                    el.disabled = true;
+                    el.style.opacity = 0.6;
+                });
+            }
+        }
+
+        // Add new round
         rounds.push({ winner: 0, data: players.map(() => ({m: 0, s: 'yes'})) });
         update(ref(db, "games/" + globalID), { rounds: rounds });
     });
 };
 
 function showScreen(id) {
-    ["gameID-screen", "player-screen", "game-screen"].forEach(s => document.getElementById(s).style.display = "none");
+    ["gameID-screen", "player-screen", "game-screen"].forEach(s => {
+        document.getElementById(s).style.display = "none";
+    });
     document.getElementById(id).style.display = "block";
 }
 </script>
+
 </body>
 </html>
